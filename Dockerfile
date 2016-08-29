@@ -7,6 +7,7 @@ MAINTAINER Edgar Y. Walker <edgar.walker@gmail.com>
 RUN apt-get update &&\
     apt-get install -y software-properties-common \
                        build-essential \
+                       git \
                        wget \
                        vim \
                        curl \
@@ -29,5 +30,22 @@ RUN apt-get update &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+WORKDIR /src
+
 # Install Bazel from source
-RUN 
+ENV BAZEL_VER 0.3.1
+ENV BAZEL_INSTALLER bazel-$BAZEL_VER-installer-linux-x86_64.sh
+ENV BAZEL_URL https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VER/$BAZEL_INSTALLER
+RUN wget $BAZEL_URL &&\
+    wget $BAZEL_URL.sha256 &&\
+    sha256sum -c $BAZEL_INSTALLER.sha256 &&\
+    chmod +x $BAZEL_INSTALLER &&\
+    ./$BAZEL_INSTALLER
+
+# Get TensorFlow
+RUN git clone https://github.com/tensorflow/tensorflow
+
+ENV PYTHON_BIN_PATH="/usr/bin/python3" TF_NEED_GCP=0 TF_NEED_CUDA=1 TF_CUDA_VERSION=8.0 TF_CUDNN_VERSION=5 TF_CUDA_COMPUTE_CAPABILITIES=5.2,6.1
+
+#RUN cd tensorflow &&\
+#    ./configure
